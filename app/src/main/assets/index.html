@@ -1,0 +1,41 @@
+<html>
+<head>
+    <!-- Tip: Use relative URLs when referring to other in-app content to give
+              your app code the flexibility to change the scheme or domain as
+              necessary. -->
+</head>
+<body>
+<p>This file was loaded from in-app content</p>
+<p>
+    <img src="https://www.gstatic.com/devrel-devsite/prod/vfe8699a5d354c41f3f953a7a9794768d4d2f39d37577d5708b5539be069912e1/android/images/lockup.svg"
+         alt="Android robot" width="100"></p>
+<textarea id="textarea" rows="10"></textarea>
+<script type="text/javascript">
+    const textarea = document.getElementById("textarea");
+    textarea.value += navigator.appVersion + "\n";
+    textarea.value += "loaded...\n";
+    window.onmessage = (event) => {
+        textarea.value += event.data + "\n";
+        textarea.value += event.origin + "\n";
+        textarea.value += event.source + "\n";
+        const port = event.ports[0];
+        port.onmessage = onMessage;
+        port.postMessage({test: 42});
+    };
+
+    function onMessage(event) {
+        textarea.value += event.data + "\n";
+    }
+
+
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>
