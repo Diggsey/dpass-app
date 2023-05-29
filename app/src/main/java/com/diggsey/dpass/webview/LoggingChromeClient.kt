@@ -7,6 +7,7 @@ import android.webkit.WebChromeClient
 import android.util.Log
 import android.webkit.ValueCallback
 import android.webkit.WebView
+import com.diggsey.dpass.RequestCode
 
 interface IDPassReadyReceiver {
     fun onDPassReady()
@@ -14,7 +15,7 @@ interface IDPassReadyReceiver {
 
 class LoggingChromeClient(
     private val readyReceiver: IDPassReadyReceiver,
-    private val hostActivity: IDPassHostActivity?
+    private val webViewInterface: WebViewInterface
 ) : WebChromeClient() {
     override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
         val priority = when (consoleMessage.messageLevel()) {
@@ -40,18 +41,19 @@ class LoggingChromeClient(
         filePathCallback: ValueCallback<Array<Uri>>,
         fileChooserParams: FileChooserParams
     ): Boolean {
-        return hostActivity?.onShowFileChooser(
-            object : IFileChooserCallback {
-                override fun onResult(resultCode: Int, data: Intent?) {
+        val intent = fileChooserParams.createIntent()
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, fileChooserParams.acceptTypes)
+        webViewInterface.startActivityViaProxy(intent, RequestCode.SELECT_FILE,
+            object : IActivityResultCallback {
+                override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
                     filePathCallback.onReceiveValue(FileChooserParams.parseResult(resultCode, data))
                 }
 
                 override fun onCancel() {
                     filePathCallback.onReceiveValue(null)
                 }
-            },
-            fileChooserParams.createIntent()
+            }
         )
-            ?: false
+        return true
     }
 }

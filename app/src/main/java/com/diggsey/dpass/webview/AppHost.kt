@@ -11,14 +11,7 @@ interface IFileChooserCallback {
     fun onCancel()
 }
 
-interface IDPassHostActivity {
-    fun onShowFileChooser(
-        callback: IFileChooserCallback,
-        intent: Intent
-    ): Boolean
-}
-
-class AppHost(private val context: Context, private val hostActivity: IDPassHostActivity? = null) :
+class AppHost(private val context: Context) :
     IDPassReadyReceiver {
     private var maybeWebView: WebView? = null
     private var webViewClient: LocalContentWebViewClient? = null
@@ -26,6 +19,9 @@ class AppHost(private val context: Context, private val hostActivity: IDPassHost
 
     val webView: WebView
         get() = maybeWebView!!
+
+    val isRefreshBlocked: Boolean
+        get() = webViewInterface?.isRefreshBlocked ?: false
 
     @SuppressLint("SetJavaScriptEnabled")
     fun init(entryPoint: String) {
@@ -40,7 +36,7 @@ class AppHost(private val context: Context, private val hostActivity: IDPassHost
             it.settings.allowFileAccess = true
             it.webViewClient = webViewClient!!
             it.webChromeClient = LoggingChromeClient(
-                this, hostActivity
+                this, webViewInterface!!
             )
             val url =
                 "${LocalContentWebViewClient.DEFAULT_ORIGIN}/${entryPoint}"
@@ -63,5 +59,17 @@ class AppHost(private val context: Context, private val hostActivity: IDPassHost
 
     fun destroy() {
         webViewInterface!!.destroy()
+    }
+
+    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        webViewInterface!!.onActivityResult(requestCode, resultCode, data)
+    }
+
+    fun command(commandId: String) {
+        webViewInterface!!.command(commandId)
+    }
+
+    fun handleCommand(commandId: String) {
+        webViewInterface!!.handleCommand(commandId)
     }
 }
